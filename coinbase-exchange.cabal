@@ -1,0 +1,13 @@
+name:              coinbase-exchange
+version:           1.0
+Build-Type:        Simple
+cabal-version:     >= 1.2
+
+executable coinbase-exchange
+  main-is:         Main.hs
+  hs-source-dirs:  src
+  build-depends:   base, bytestring, string-conversions,
+                   network, HTTP, SHA, time, wreq, lens,
+                   http-types, base64-bytestring, aeson,
+                   currency, old-locale, configurator, mtl
+

@@ -18,7 +18,8 @@ data Configuration = Configuration
     }
 
 type ReaderConfig a = Reader Configuration a
-type ReaderConfigIO a = ReaderT Configuration IO a
+type ReaderConfigM m a = ReaderT Configuration m a
+type ReaderConfigIO a = ReaderConfigM IO a
 type ReaderConfigIOResponse a = ReaderConfigIO (Response a)
 
 loadConfiguration :: IO (Maybe Configuration)

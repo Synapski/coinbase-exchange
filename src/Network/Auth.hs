@@ -14,7 +14,7 @@ import Control.Monad.Reader
 import Data.Types
 import Data.Configuration
 
-getAccessSign :: Timestamp -> Method -> URL -> Body -> ReaderConfig SBS
+getAccessSign :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM m SBS
 getAccessSign timestamp method url body = do
     config <- ask
     let
@@ -22,7 +22,7 @@ getAccessSign timestamp method url body = do
         message = cs $ (show timestamp) ++ (cs method) ++ url ++ body
     return $ encode $ cs $ bytestringDigest $ hmacSha256 s message
 
-getHeaders :: Timestamp -> Method -> URL -> Body -> ReaderConfig [(Options -> Options)]
+getHeaders :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM m [(Options -> Options)]
 getHeaders timestamp method uri body = do
     config <- ask
     accessSign <- getAccessSign timestamp method uri body
@@ -46,10 +46,9 @@ timestampToByteString timestamp =
 
 getRequestOpts :: Method -> URL -> Params -> Body -> ReaderConfigIO Options
 getRequestOpts method url params body = do
-    config <- ask
-    timestamp <- lift $ getCurrentTimestamp
+    timestamp <- liftIO $ getCurrentTimestamp
+    h <- getHeaders timestamp method url body
     let
-        h = runReader (getHeaders timestamp method url body) config
         p = getParams params
     return $ foldl (&) defaults (h ++ p)
 

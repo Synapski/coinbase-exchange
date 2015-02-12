@@ -1,4 +1,4 @@
-module Network.Api.Coinbase where
+module Network.HTTP.Api where
 
 import Network.Wreq
 import Control.Lens
@@ -7,8 +7,8 @@ import Data.Types
 import Data.Coinbase
 import Data.Json
 import Data.Configuration
-import Network.Auth
-import Network.Api.Action
+import Network.HTTP.Auth
+import Network.HTTP.Action
 
 -- Account
 getAccounts :: ReaderConfigIO [Account]

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Network.Auth where
+module Network.HTTP.Auth where
 
 import Data.String.Conversions (SBS,LBS,cs)
 import Data.Time.Clock.POSIX
@@ -18,7 +18,7 @@ getAccessSign :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM 
 getAccessSign timestamp method url body = do
     config <- ask
     let
-        s = cs $ decodeLenient $ secret config
+        s = cs $ decodeLenient $ httpSecret config
         message = cs $ (show timestamp) ++ (cs method) ++ url ++ body
     return $ encode $ cs $ bytestringDigest $ hmacSha256 s message
 
@@ -26,10 +26,10 @@ getHeaders :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM m [
 getHeaders timestamp method uri body = do
     config <- ask
     accessSign <- getAccessSign timestamp method uri body
-    return [ header "CB-ACCESS-KEY" .~ [cs $ key config]
+    return [ header "CB-ACCESS-KEY" .~ [cs $ httpKey config]
            , header "CB-ACCESS-SIGN" .~ [accessSign]
            , header "CB-ACCESS-TIMESTAMP" .~ [timestampToByteString timestamp]
-           , header "CB-ACCESS-PASSPHRASE" .~ [cs $ pass config]
+           , header "CB-ACCESS-PASSPHRASE" .~ [cs $ httpPass config]
            ]
 
 getParams :: Params -> [(Options -> Options)]
@@ -57,5 +57,5 @@ getAuthRequest (Action method url params body) = do
     config <- ask
     opts <- getRequestOpts method url params body
     let
-        fullUrl = baseUrl config ++ url
+        fullUrl = httpBaseUrl config ++ url
     liftIO $ getWith opts fullUrl

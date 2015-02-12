@@ -11,6 +11,9 @@ import Control.Applicative
 import Control.Monad
 
 import Data.Coinbase
+import Data.Types
+
+-- HTTP
 
 instance FromJSON Account where
     parseJSON (Object v) =
@@ -64,3 +67,12 @@ instance FromJSON Trade where
               <*> liftM getTradeTime (v .: "time")
               <*> liftM getTradeSide (v .: "side")
     parseJSON _          = mzero
+
+
+-- WebSocket
+
+instance ToJSON Subscribe where
+    toJSON (Subscribe productId) =
+        object [ "type" .= ("subscribe" :: String)
+               , "product_id" .= productId
+               ]

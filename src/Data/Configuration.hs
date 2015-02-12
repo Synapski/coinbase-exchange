@@ -11,10 +11,13 @@ import Control.Monad.Reader
 import Data.Types
 
 data Configuration = Configuration
-    { baseUrl :: URL
-    , key     :: String
-    , secret  :: SBS
-    , pass    :: String
+    { httpBaseUrl :: URL
+    , httpKey     :: String
+    , httpSecret  :: SBS
+    , httpPass    :: String
+    , wsUrl       :: URL
+    , wsPort      :: String
+    , wsPath      :: String
     }
 
 type ReaderConfig a = Reader Configuration a
@@ -25,9 +28,11 @@ type ReaderConfigIOResponse a = ReaderConfigIO (Response a)
 loadConfiguration :: IO (Maybe Configuration)
 loadConfiguration = do
     config <- C.load [ C.Required "app.cfg" ]
-    u <- C.lookup config "api-coinbase.url"
-    k <- C.lookup config "api-coinbase.key"
-    s <- C.lookup config "api-coinbase.secret"
-    p <- C.lookup config "api-coinbase.pass"
-
-    return $ Configuration <$> u <*> k <*> s <*> p
+    hu  <- C.lookup config "api-http-coinbase.url"
+    hk  <- C.lookup config "api-http-coinbase.key"
+    hs  <- C.lookup config "api-http-coinbase.secret"
+    hp  <- C.lookup config "api-http-coinbase.pass"
+    wu  <- C.lookup config "api-ws-coinbase.url"
+    wp  <- C.lookup config "api-ws-coinbase.port"
+    wpp <- C.lookup config "api-ws-coinbase.path"
+    return $ Configuration <$> hu <*> hk <*> hs <*> hp <*> wu <*> wp <*> wpp

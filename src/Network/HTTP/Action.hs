@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Network.Api.Action where
+module Network.HTTP.Action where
 
 import Network.HTTP.Types
 

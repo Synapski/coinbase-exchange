@@ -12,5 +12,5 @@ executable coinbase-exchange
                    http-types, base64-bytestring, aeson,
                    currency, old-locale, configurator, mtl,
                    websockets, text, HsOpenSSL, io-streams,
-                   openssl-streams
+                   openssl-streams, unordered-containers
 

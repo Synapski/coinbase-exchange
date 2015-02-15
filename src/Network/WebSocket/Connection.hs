@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Network.WebSocket.Connection where
 
@@ -9,6 +10,7 @@ import           Control.Monad.Trans   (liftIO)
 import           Control.Monad.Reader
 import           Data.Aeson
 import qualified Data.ByteString.Lazy  as B (toStrict)
+import           Data.String.Conversions (cs)
 import           Data.Text             (Text)
 import qualified Data.Text             as T
 import qualified Data.Text.IO          as T
@@ -19,10 +21,22 @@ import qualified OpenSSL.Session       as SSL
 import qualified System.IO.Streams     as Streams
 import qualified System.IO.Streams.SSL as Streams
 import qualified Network.Socket        as S
+import           GHC.Generics (Generic)
 
 import Data.Configuration
+import Data.Coinbase
 import Data.Types
 import Data.Json
+
+data Subscribe = Subscribe
+    { productId :: ProductId
+    } deriving (Show,Generic)
+
+instance ToJSON Subscribe where
+    toJSON (Subscribe productId) =
+        object [ "type" .= ("subscribe" :: String)
+               , "product_id" .= productId
+               ]
 
 feed :: ProductId -> WS.ClientApp ()
 feed productId conn = do
@@ -31,7 +45,13 @@ feed productId conn = do
     -- Fork a thread that writes WS data to stdout
     _ <- forkIO $ forever $ do
         msg <- WS.receiveData conn
-        liftIO $ T.putStrLn msg
+--        liftIO $ T.putStrLn msg
+--        let m = (decode msg) :: Maybe Received
+--        let m = (decode msg) :: Maybe Object
+        let m = (eitherDecode msg) :: Either String MarketData
+        case m of
+            Right o  -> liftIO $ print o
+            Left err -> liftIO $ print $ err ++ " in " ++ cs msg
 
     WS.sendTextData conn $ encode $ toJSON (Subscribe productId)
 

@@ -5,6 +5,7 @@ module Network.HTTP.Action where
 import Network.HTTP.Types
 
 import Data.Types
+import Data.Coinbase
 
 -- Account
 accountsAction :: Action

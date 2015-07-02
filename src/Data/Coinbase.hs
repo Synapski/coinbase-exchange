@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric DeriveData 
+DeriveFunctor DeriveFoldable DeriveTraversable  DeriveTypeable #-}
 
 module Data.Coinbase where
 
@@ -7,13 +7,16 @@ import Data.Time.Format
 import Data.Time.Clock
 import Currency
 import GHC.Generics (Generic)
+import qualified Data.Text as T
+import Data.Text (Text)
 
 import Data.Types
+import Data.Int
 
-type AccountId = String
-type ProductId = String
-type TradeId   = Int
-type OrderId   = String
+newtype AccountId = AccountId {_accountId ::Text}
+newtype ProductId = ProductId Text
+newtype TradeId   = TradeId Int64
+newtype OrderId   = Order Text
 
 -- Account
 data Account = Account
@@ -22,29 +25,29 @@ data Account = Account
     , hold      :: Amount
     , available :: Amount
     , currency  :: Currency
-    } deriving (Show,Generic)
+    } deriving (Show,Eq,Data,Generic)
 
 -- Product
 data Product = Product
     { productId      :: ProductId
     , baseCurrency   :: Currency
     , quoteCurrency  :: Currency
-    , baseMinSize    :: Amount
-    , baseMaxSize    :: Amount
+    , baseRangeSize    :: (Amount,Amount)
+    --, baseMaxSize    :: Amount
     , quoteIncrement :: Quantity
-    } deriving (Show,Generic)
+    } deriving (Show,Eq,Generic)
 
 -- Order Book
 data Bid = Bid
     { bidPrice     :: Amount
     , bidSize      :: Quantity
-    , bidNumOrders :: Int
+    , bidOrderId   :: OrderId
     } deriving (Show,Generic)
 
 data Ask = Ask
     { askPrice     :: Amount
     , askSize      :: Quantity
-    , askNumOrders :: Int
+    , askOrderId   :: OrderId
     } deriving (Show,Generic)
 
 data OrderBook = OrderBook
@@ -53,7 +56,7 @@ data OrderBook = OrderBook
     , asks              :: [Ask]
     } deriving (Show,Generic)
 
-data Side = BUY | SELL deriving (Show)
+data Side = BUY | SELL deriving (Show,Eq)
 
 data Trade = Trade
     { tradeId    :: TradeId
@@ -70,14 +73,14 @@ data DoneReason = Filled | Canceled deriving (Show)
 data MarketData =
     Received
     { sequence          :: Int
-    , receivedOrderId   :: OrderId
+    , orderId           :: OrderId
     , receivedSize      :: Quantity
     , receivedPrice     :: Amount
     , receivedSide      :: Side
     }
   | Open
     { sequence          :: Int
-    , openOrderId       :: OrderId
+    , orderId           :: OrderId
     , openPrice         :: Amount
     , openRemainingSize :: Quantity
     , openSide          :: Side
@@ -85,7 +88,7 @@ data MarketData =
   | Done
     { sequence          :: Int
     , donePrice         :: Amount
-    , doneOrderId       :: OrderId
+    , orderId           :: OrderId
     , doneReason        :: DoneReason
     , doneSide          :: Side
     , doneRemainingSize :: Quantity
@@ -102,11 +105,10 @@ data MarketData =
     }
   | Change
     { sequence          :: Int
-    , changeOrderId     :: OrderId
+    , orderId           :: OrderId
     , changeTime        :: UTCTime
     , changeNewSize     :: Quantity
     , changeOldSize     :: Quantity
     , changePrice       :: Amount
     , changeSide        :: Side
     } deriving (Show,Generic)
-

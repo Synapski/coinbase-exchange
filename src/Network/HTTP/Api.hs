@@ -3,7 +3,6 @@ module Network.HTTP.Api where
 import Network.Wreq
 import Control.Lens
 
-import Data.Types
 import Data.Coinbase
 import Data.Json
 import Data.Configuration

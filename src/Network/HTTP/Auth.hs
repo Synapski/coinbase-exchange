@@ -13,14 +13,18 @@ import Control.Monad.Reader
 
 import Data.Types
 import Data.Configuration
+import Data.Monoid
+import qualified Data.ByteString.Char8 as BS
+
+
+{-  T.pack . LBS.unpack -}
 
 getAccessSign :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM m SBS
 getAccessSign timestamp method url body = do
-    config <- ask
-    let
-        s = cs $ decodeLenient $ httpSecret config
-        message = cs $ (show timestamp) ++ (cs method) ++ url ++ body
-    return $ encode $ cs $ bytestringDigest $ hmacSha256 s message
+    config <- {-view config  xxxask-} ask
+    s <- return $   either (error . ("getAccessSign error " ++)) id $ decode $ httpSecret config
+    message <- return $  BS.pack $ show timestamp <>  method  <>  url <> body
+    return $ encode $ (BS.pack . showDigest) $ hmacSha256 s message
 
 getHeaders :: Monad m => Timestamp -> Method -> URL -> Body -> ReaderConfigM m [(Options -> Options)]
 getHeaders timestamp method uri body = do
@@ -42,11 +46,13 @@ getCurrentTimestamp =
 
 timestampToByteString :: Timestamp -> SBS
 timestampToByteString timestamp =
-    cs $ show timestamp
+    BS.pack $ show timestamp
 
-getRequestOpts :: Method -> URL -> Params -> Body -> ReaderConfigIO Options
+
+--example 
+getRequestOpts :: (MonadReader r m, MonadIO m,HasConfig r ) => Method -> URL -> Params -> Body -> ReaderConfigIO Options
 getRequestOpts method url params body = do
-    timestamp <- liftIO $ getCurrentTimestamp
+    timestamp <- liftIO  getCurrentTimestamp
     h <- getHeaders timestamp method url body
     let
         p = getParams params

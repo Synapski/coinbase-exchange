@@ -6,7 +6,6 @@ import Data.Aeson
 import Data.Time.Format
 import Data.Time.Clock
 import Currency
-import System.Locale
 import Control.Applicative
 import Control.Monad
 import qualified Data.HashMap.Strict as Hm

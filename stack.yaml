@@ -1,0 +1,6 @@
+flags: {}
+packages:
+- '.'
+extra-deps:
+- currency-0.2.0.0
+resolver: lts-3.2
